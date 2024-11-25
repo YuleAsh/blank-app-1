@@ -103,7 +103,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["Invoice Reconciliation", "Reconciliation Summ
 # Tab 1: Invoice Recon
 with tab1:
     st.subheader("Invoice Reconciliation Overview")
-    st.write("### Summary Table")
+    
     table1_data = create_summary_table(filtered_df, [
         'Carrier Name', 'Reconciliation Status', 'Invoice Amount (USD)', 
         'Disputed Amount (USD)', 'Dispute Type', 'Settlement Status'
@@ -123,27 +123,42 @@ with tab1:
     st.dataframe(styled_table, use_container_width=True, height=250)
 
     # Chart: Disputed vs Processed Amounts by Carrier
-    st.write("### Disputed vs Processed Amounts by Carrier")
+    
     if not filtered_df.empty:
         processed_vs_disputed = px.bar(filtered_df, x='Carrier Name', y=['Invoice Amount (USD)', 'Disputed Amount (USD)'],
                                        title="Disputed vs Processed Amounts by Carrier", barmode="group",  labels={
         "Carrier Name": "Carrier", "value": "Amount (USD)"})
-        st.plotly_chart(processed_vs_disputed)
+        
+    processed_vs_disputed.update_layout(
+        title={
+            'text': "Disputed vs Processed Amounts by Carrier",
+            'font': {'size': 24},  # Increase the font size
+            'x': 0.35  # Center the title
+            }
+    )
+    st.plotly_chart(processed_vs_disputed)
 
     # Chart: Invoice Disputes by Month
-    st.write("### Invoice Disputes by Month")
+    
     monthly_disputes = filtered_df.round(2).groupby('Invoice Month').agg({
         'Invoice Amount (USD)': 'sum', 'Disputed Amount (USD)': 'sum'}).reset_index()
     monthly_disputes = np.round(monthly_disputes, 2)
     monthly_disputes_fig = px.line(monthly_disputes.round(2), x='Invoice Month', y=['Invoice Amount (USD)', 'Disputed Amount (USD)'],
                                    title="Invoice Disputes by Month",  labels={"value": "Amount (USD)"} )
+
+    monthly_disputes_fig.update_layout(
+        title={
+            'text': "Invoice Disputes by Month",
+            'font': {'size': 24},  # Increase the font size
+            'x': 0.35  # Center the title
+            }
+    )
     st.plotly_chart(monthly_disputes_fig)
 
 # Tab 2: Reconciliation Summary
 with tab2:
     st.subheader("Reconciliation Summary")
-    st.write("### Summary Table")
-
+    
     # Calculate Receivables and Payables
     filtered_df['Receivables'] = np.round(filtered_df['Invoice Amount (USD)'] - filtered_df['Disputed Amount (USD)'], 2)
     filtered_df['Payables'] = np.round(filtered_df['Disputed Amount (USD)'], 2)
@@ -169,9 +184,9 @@ with tab2:
     def highlight_settlement_status1(val):
         """Highlight 'Pending' in red and 'Settled' in green."""
         if val == 'Pending':
-            return 'color: red;' 
+            return 'color: red; font-weight: bold;'
         elif val == 'Settled':
-            return 'color: green;'
+            return 'color: green; font-weight: bold;'
         return ''
 
     # Use Styler for applying formatting
@@ -185,14 +200,22 @@ with tab2:
     )
 
     # Chart: Pending Reconciliation by Carrier
-    st.write("### Carriers with Pending Reconciliation")
+    
     pending_reconciliation = filtered_df[filtered_df['Reconciliation Status'] == 'Pending']
     pending_summary = pending_reconciliation.groupby('Carrier Name')['Invoice Amount (USD)'].sum().reset_index()
     pending_reconciliation_fig = px.bar(
         pending_summary, 
         x='Carrier Name', 
         y='Invoice Amount (USD)',
-        title="Invoices with Pending Reconciliation by Carrier"
+        title="Pending Reconciliation by Carrier"
+    )
+
+    pending_reconciliation_fig.update_layout(
+        title={
+            'text': "Pending Reconciliation by Carrier",
+            'font': {'size': 24},  # Increase the font size
+            'x': 0.35  # Center the title
+            }
     )
     st.plotly_chart(pending_reconciliation_fig)
 
@@ -200,7 +223,7 @@ with tab2:
 # Tab 3: Dispute Summary
 with tab3:
     st.subheader("Dispute Summary")
-    st.write("### Summary Table")
+    
     
     # Simulate realistic values for 'Disputed Usage (Mins)'
     # Disputed Usage is based on the type of dispute (Rate or Volume)
@@ -242,8 +265,8 @@ with tab3:
     def highlight_settlement_status(val):
         """Highlight 'Unsettled' in red."""
         if val == 'Unsettled':
-            return 'color: red;'
-        else: return 'color: green;'
+            return 'color: red; font-weight: bold;'
+        else: return 'color: green; font-weight: bold;'
         return ''
 
     # Use Styler for applying formatting
@@ -263,6 +286,13 @@ with tab3:
             disputed_amounts, x='Carrier Name', y='Disputed Amount (USD)', 
             title="Disputed Amounts by Carrier"
         )
+        disputed_amounts_fig.update_layout(
+            title={
+                'text': "Disputed Amounts by Carrier",
+                'font': {'size': 24},
+                'x': 0.25
+                }
+        )
         st.plotly_chart(disputed_amounts_fig, use_container_width=True)
 
     # Chart 2: Disputed Usage by Carrier
@@ -271,7 +301,14 @@ with tab3:
         disputed_usage['Disputed Usage (Mins)'] = disputed_usage['Disputed Usage (Mins)'].round(2)
         disputed_usage_fig = px.bar(
             disputed_usage, x='Carrier Name', y='Disputed Usage (Mins)', 
-            title="Disputed Usage (Mins) by Carrier"
+            title="Disputed Usage by Carrier"
+        )
+        disputed_usage_fig.update_layout(
+            title={
+                'text': "Disputed Usage by Carrier",
+                'font': {'size': 24},  # Increase the font size
+                'x': 0.25  # Center the title
+                }
         )
         st.plotly_chart(disputed_usage_fig, use_container_width=True)
 
@@ -279,7 +316,7 @@ with tab3:
 # Tab 4: Settlement Summary
 with tab4:
     st.subheader("Settlement Summary")
-    st.write("### Summary Table")
+    
 
     # Group by 'Carrier Name' and aggregate the required fields
     summary_table4 = filtered_df.groupby('Carrier Name').agg({
@@ -312,32 +349,42 @@ with tab4:
     st.dataframe(summary_table4_display.style.set_properties(**{'text-align': 'center'}), use_container_width=True, height=300)
 
     # Create columns for the two charts
-    st.write("### Settlement Visualizations")
+    
     col1, col2 = st.columns(2)
 
     # Chart 1: Settlement Status by Carrier (Pie Chart)
-    with col1:
-        st.write("Settlement Status by Carrier")
-        settlement_status = filtered_df.groupby(['Carrier Name', 'Settlement Status']).size().reset_index(name='Count')
-        settlement_pie = px.pie(settlement_status, names='Settlement Status', values='Count', title="Settlement Status by Carrier")
-        st.plotly_chart(settlement_pie, use_container_width=True)
+with col1:
+    settlement_status = filtered_df.groupby(['Carrier Name', 'Settlement Status']).size().reset_index(name='Count')
+    settlement_pie = px.pie(settlement_status, names='Settlement Status', values='Count', title="Overall Settlement Status")
+    settlement_pie.update_layout(
+        title={
+            'text': "Overall Settlement Status",
+            'font': {'size': 24},  # Increase the font size
+            'x': 0.25  # Center the title
+        }
+    )
+    st.plotly_chart(settlement_pie, use_container_width=True)
 
-    # Chart 2: Outstanding Amount by Carrier (Bar Chart)
-    with col2:
-        st.write("Outstanding Amount by Carrier")
-        outstanding_bar = px.bar(
-            summary_table4,
-            x='Carrier Name',
-            y='Outstanding Amount',
-            title="Outstanding Amount by Carrier",
-            text='Outstanding Amount',
-            labels={'Outstanding Amount': 'Amount (USD)'},
-            color='Outstanding Amount',
-            color_continuous_scale='Reds'
-        )
-        outstanding_bar.update_layout(
-            xaxis_title="Carrier Name",
-            yaxis_title="Outstanding Amount (USD)",
-            template="plotly_white"
-        )
-        st.plotly_chart(outstanding_bar, use_container_width=True)
+# Chart 2: Outstanding Amount by Carrier (Bar Chart)
+with col2:
+    outstanding_bar = px.bar(
+        summary_table4,
+        x='Carrier Name',
+        y='Outstanding Amount',
+        title="Outstanding Amount by Carrier",
+        text='Outstanding Amount',
+        labels={'Outstanding Amount': 'Amount (USD)'},
+        color='Outstanding Amount',
+        color_continuous_scale='Reds'
+    )
+    outstanding_bar.update_layout(
+        title={
+            'text': "Outstanding Amount by Carrier",
+            'font': {'size': 24},  # Increase the font size
+            'x': 0.25  # Center the title
+        },
+        xaxis_title="Carrier Name",
+        yaxis_title="Outstanding Amount (USD)",
+        template="plotly_white"
+    )
+    st.plotly_chart(outstanding_bar, use_container_width=True)
