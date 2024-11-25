@@ -196,7 +196,7 @@ with tab2:
     st.dataframe(
         styled_table,
         use_container_width=True,
-        height=400  # Set fixed height for scrollable table
+        height=250  # Set fixed height for scrollable table
     )
 
     # Chart: Pending Reconciliation by Carrier
@@ -270,7 +270,7 @@ with tab3:
         return ''
 
     # Use Styler for applying formatting
-    styled_table = summary_table3_display.style.applymap(highlight_settlement_status, subset=['Settlement Status']).set_properties(**{'text-align': 'left'})
+    styled_table = summary_table3_display.style.applymap(highlight_settlement_status, subset=['Settlement Status']).set_properties(**{'text-align': 'left'}, height=100)
     
     # Render the table as HTML and display using st.write
     st.write(styled_table.to_html(), unsafe_allow_html=True)
@@ -346,7 +346,7 @@ with tab4:
     # Display the summary table with the practical fields
     summary_table4_rounded = summary_table4.round(2)
     summary_table4_display = summary_table4_rounded.astype(str)
-    st.dataframe(summary_table4_display.style.set_properties(**{'text-align': 'center'}), use_container_width=True, height=300)
+    st.dataframe(summary_table4_display.style.set_properties(**{'text-align': 'center'}), use_container_width=True, height=250)
 
     # Create columns for the two charts
     
@@ -360,7 +360,7 @@ with col1:
         title={
             'text': "Overall Settlement Status",
             'font': {'size': 24},  # Increase the font size
-            'x': 0.2  # Center the title
+            'x': 0.25  # Center the title
         }
     )
     st.plotly_chart(settlement_pie, use_container_width=True)
