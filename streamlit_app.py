@@ -108,7 +108,19 @@ with tab1:
         'Carrier Name', 'Reconciliation Status', 'Invoice Amount (USD)', 
         'Disputed Amount (USD)', 'Dispute Type', 'Settlement Status'
     ])
-    st.dataframe(table1_data, use_container_width=True, height=250)
+
+    def highlight_settlement_status1(val):
+        """Highlight 'Pending' in red and 'Settled' in green."""
+        if val == 'Unsettled':
+            return 'color: red; font-weight: bold;'
+        elif val == 'Settled':
+            return 'color: green; font-weight: bold;'
+        return ''
+
+    # Use Styler for applying formatting
+    styled_table = table1_data.style.applymap(highlight_settlement_status1, subset=['Settlement Status']).set_properties(**{'text-align': 'left'})
+  
+    st.dataframe(styled_table, use_container_width=True, height=250)
 
     # Chart: Disputed vs Processed Amounts by Carrier
     st.write("### Disputed vs Processed Amounts by Carrier")
