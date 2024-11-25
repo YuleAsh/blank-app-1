@@ -360,7 +360,7 @@ with col1:
         title={
             'text': "Overall Settlement Status",
             'font': {'size': 24},  # Increase the font size
-            'x': 0.25  # Center the title
+            'x': 0.2  # Center the title
         }
     )
     st.plotly_chart(settlement_pie, use_container_width=True)
