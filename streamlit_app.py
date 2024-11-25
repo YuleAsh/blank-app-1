@@ -8,34 +8,41 @@ import base64
 # Page configuration
 st.set_page_config(layout="wide", page_title="Billing Reconciliation Dashboard")
 
-# Function to encode the logo as Base64
+import streamlit as st
+import base64
+import os
+
 def get_base64_image(image_path):
     """
-    Convert an image to a base64 string for embedding in HTML.
-    :param image_path: Path to the image file
-    :return: Base64 encoded string of the image
+    Convert an image to a base64-encoded string.
     """
-    with open(image_path, "rb") as img_file:
-        return base64.b64encode(img_file.read()).decode("utf-8")
+    try:
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode("utf-8")
+    except FileNotFoundError:
+        st.error(f"Logo file not found at: {image_path}")
+        return None
 
-# Function to display the logo at the top of the page
 def display_page_logo():
     """
     Display a centered logo at the top of the page with increased size.
     """
     logo_path = r"C:\Users\Ashis\Desktop\DU Automation V2\Du.png"  # Update your logo path here
-    st.markdown(
-        f"""
-        <div style="text-align: center; margin-top: 10px;">
-            <img src="data:image/png;base64,{get_base64_image(logo_path)}" 
-                 style="width: 150%; max-width: 300px; height: auto; margin-bottom: 20px;">
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    base64_logo = get_base64_image(logo_path)
+    if base64_logo:
+        st.markdown(
+            f"""
+            <div style="text-align: center; margin-top: 10px;">
+                <img src="data:image/png;base64,{base64_logo}" 
+                     style="width: 50%; max-width: 300px; height: auto; margin-bottom: 20px;">
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 # Call the logo display function at the very top
 display_page_logo()
+
 
 
 # Set display format for pandas globally
