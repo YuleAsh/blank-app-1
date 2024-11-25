@@ -27,7 +27,7 @@ def display_page_logo():
     """
     Display a centered logo at the top of the page with increased size.
     """
-    logo_path = r"C:\Users\Ashis\Desktop\DU Automation V2\Du.png"  # Update your logo path here
+    logo_path = r"https://raw.githubusercontent.com/YuleAsh/blank-app-1/main/Du.png"  # Update your logo path here
     base64_logo = get_base64_image(logo_path)
     if base64_logo:
         st.markdown(
