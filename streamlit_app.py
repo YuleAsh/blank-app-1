@@ -230,8 +230,8 @@ with tab3:
     def highlight_settlement_status(val):
         """Highlight 'Unsettled' in red."""
         if val == 'Unsettled':
-            return 'color: red; font-weight: bold;'
-        else: return 'color: green; font-weight: bold;'
+            return 'color: red;'
+        else: return 'color: green;'
         return ''
 
     # Use Styler for applying formatting
