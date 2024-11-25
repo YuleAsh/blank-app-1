@@ -4,13 +4,11 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import base64
+import os
+
 
 # Page configuration
 st.set_page_config(layout="wide", page_title="Billing Reconciliation Dashboard")
-
-import streamlit as st
-import base64
-import os
 
 def get_base64_image(image_path):
     """
@@ -159,9 +157,9 @@ with tab2:
     def highlight_settlement_status1(val):
         """Highlight 'Pending' in red and 'Settled' in green."""
         if val == 'Pending':
-            return 'color: red; font-weight: bold;'
+            return 'color: red;' 
         elif val == 'Settled':
-            return 'color: green; font-weight: bold;'
+            return 'color: green;'
         return ''
 
     # Use Styler for applying formatting
