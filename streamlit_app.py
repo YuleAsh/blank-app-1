@@ -24,21 +24,15 @@ def get_base64_image(image_path):
         return None
 
 def display_page_logo():
-    """
-    Display a centered logo at the top of the page with increased size.
-    """
-    logo_path = r"https://raw.githubusercontent.com/YuleAsh/blank-app-1/main/Du.png"  # Update your logo path here
-    base64_logo = get_base64_image(logo_path)
-    if base64_logo:
-        st.markdown(
-            f"""
-            <div style="text-align: center; margin-top: 10px;">
-                <img src="data:image/png;base64,{base64_logo}" 
-                     style="width: 50%; max-width: 300px; height: auto; margin-bottom: 20px;">
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+    logo_url = "https://raw.githubusercontent.com/YuleAsh/blank-app-1/main/Du.png"
+    st.markdown(
+        f"""
+        <div style="text-align: center;">
+            <img src="{logo_url}" alt="Logo" width="300" />
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 # Call the logo display function at the very top
 display_page_logo()
