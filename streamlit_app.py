@@ -377,6 +377,11 @@ with col2:
         color='Outstanding Amount',
         color_continuous_scale='Reds'
     )
+    outstanding_bar.update_traces(
+        texttemplate='%{text:.2f}',  # Format the text to 2 decimal places
+        textposition='outside',     # Position the text outside the bars
+        textangle=0                 # Make text horizontal
+    )
     outstanding_bar.update_layout(
         title={
             'text': "Outstanding Amount by Carrier",
