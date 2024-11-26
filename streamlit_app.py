@@ -117,7 +117,7 @@ with tab1:
             return 'color: green; font-weight: bold;'
         return ''
 
-    # Use Styler for applying formatting
+    # Styler for applying formatting
     styled_table = table1_data.style.applymap(highlight_settlement_status1, subset=['Settlement Status']).set_properties(**{'text-align': 'left'})
   
     st.dataframe(styled_table, use_container_width=True, height=250)
@@ -169,18 +169,18 @@ with tab2:
         'Disputed Amount (USD)': 'sum',
     }).reset_index()
 
-    # Add additional columns like Receivables, Payables, Netted Amount, and Settlement Status
+    # Adding additional columns like Receivables, Payables, Netted Amount, and Settlement Status
     summary_table2['Receivables'] = np.round(np.random.uniform(1000, 3000, len(summary_table2)), 2)
     summary_table2['Payables'] = np.round(np.random.uniform(500, 2500, len(summary_table2)), 2)
     summary_table2['Netted Amount'] = np.round(summary_table2['Receivables'] - summary_table2['Payables'], 2)
     summary_table2['Settlement Status'] = np.random.choice(['Settled', 'Pending'], len(summary_table2))
 
-    # Round numerical values for clarity
+    # Rounding numerical values for clarity
     summary_table2_rounded = summary_table2.round(2)
 
     summary_table2_display = summary_table2_rounded.astype(str)
 
-    # Apply conditional formatting for 'Settlement Status'
+    # Applying conditional formatting for 'Settlement Status'
     def highlight_settlement_status1(val):
         """Highlight 'Pending' in red and 'Settled' in green."""
         if val == 'Pending':
@@ -189,10 +189,10 @@ with tab2:
             return 'color: green; font-weight: bold;'
         return ''
 
-    # Use Styler for applying formatting
+    # Styler for applying formatting
     styled_table = summary_table2_display.style.applymap(highlight_settlement_status1, subset=['Settlement Status']).set_properties(**{'text-align': 'left'})
   
-    # Display table using st.dataframe with scrollable height
+    # Displaying table using st.dataframe with scrollable height
     st.dataframe(
         styled_table,
         use_container_width=True,
@@ -225,16 +225,16 @@ with tab3:
     st.subheader("Dispute Summary")
     
     
-    # Simulate realistic values for 'Disputed Usage (Mins)'
+    # Simulating realistic values for 'Disputed Usage (Mins)'
     # Disputed Usage is based on the type of dispute (Rate or Volume)
     filtered_df['Disputed Usage (Mins)'] = np.random.uniform(0, 500, size=len(filtered_df)).round(2)
     filtered_df.loc[filtered_df['Dispute Type'] == 'Rate Dispute', 'Disputed Usage (Mins)'] = np.random.uniform(0, 5000, size=len(filtered_df[filtered_df['Dispute Type'] == 'Rate Dispute'])).round(2)
     filtered_df.loc[filtered_df['Dispute Type'] == 'Volume Dispute', 'Disputed Usage (Mins)'] = np.random.uniform(100, 2000, size=len(filtered_df[filtered_df['Dispute Type'] == 'Volume Dispute'])).round(2)
 
-    # Simulate realistic 'Disputed Amount' linked to usage
+    # Simulating realistic 'Disputed Amount' linked to usage
     filtered_df['Disputed Amount (USD)'] = (filtered_df['Disputed Usage (Mins)'] * np.random.uniform(0.05, 0.2, size=len(filtered_df))).round(2)
 
-    # Group by 'Carrier Name' and calculate aggregated metrics
+    # Grouping by 'Carrier Name' and calculating aggregated metrics
     summary_table3 = filtered_df.groupby('Carrier Name').agg({
         'Invoice Amount (USD)': 'sum',  # Sum of all invoices for each carrier
         'Disputed Amount (USD)': 'sum',  # Sum of all disputed amounts
@@ -243,25 +243,25 @@ with tab3:
         'Settlement Status': lambda x: np.random.choice(x.dropna().unique()) if not x.dropna().empty else None  # Combine settlement statuses
     }).reset_index()
 
-    # Round numerical values in the summary table
+    # Rounding numerical values in the summary table
     summary_table3[['Invoice Amount (USD)', 'Disputed Amount (USD)', 'Disputed Usage (Mins)']] = summary_table3[
         ['Invoice Amount (USD)', 'Disputed Amount (USD)', 'Disputed Usage (Mins)']
     ].round(2)
 
-    # Rename columns for clarity
+    # Renaming columns for clarity
     summary_table3.rename(columns={
         'Invoice Amount (USD)': 'Total Invoice Amount (USD)',
         'Disputed Amount (USD)': 'Total Disputed Amount (USD)',
         'Disputed Usage (Mins)': 'Total Disputed Usage (Mins)'
     }, inplace=True)
 
-    # Display the summary table
+    # Displaying the summary table
     summary_table3_rounded = summary_table3.round(2)
 
-    # Convert the DataFrame to strings to ensure the display keeps formatting
+    # Converting the DataFrame to strings to ensure the display keeps formatting
     summary_table3_display = summary_table3_rounded.astype(str)
 
-    # Apply conditional formatting for 'Settlement Status'
+    # Applying conditional formatting for 'Settlement Status'
     def highlight_settlement_status(val):
         """Highlight 'Unsettled' in red."""
         if val == 'Unsettled':
@@ -269,13 +269,13 @@ with tab3:
         else: return 'color: green; font-weight: bold;'
         return ''
 
-    # Use Styler for applying formatting
+    # Styler for applying formatting
     styled_table = summary_table3_display.style.applymap(highlight_settlement_status, subset=['Settlement Status']).set_properties(**{'text-align': 'left'}, height=100)
     
-    # Render the table as HTML and display using st.write
+    # Rendering the table as HTML and displaying using st.write
     st.write(styled_table.to_html(), unsafe_allow_html=True)
 
-    # Create two columns for side-by-side charts
+    # Creating two columns for side-by-side charts
     col1, col2 = st.columns(2)
 
     # Chart 1: Disputed Amounts by Carrier
@@ -318,16 +318,16 @@ with tab4:
     st.subheader("Settlement Summary")
     
 
-    # Group by 'Carrier Name' and aggregate the required fields
+    # Grouping by 'Carrier Name' and aggregating the required fields
     summary_table4 = filtered_df.groupby('Carrier Name').agg({
         'Disputed Amount (USD)': 'sum',  # Summing disputed amounts per carrier
         'Settlement Status': 'count',  # Counting the invoices (total invoices per carrier)
     }).reset_index()
 
-    # Rename 'Settlement Status' to 'Total Invoices' for clarity
+    # Renaming 'Settlement Status' to 'Total Invoices' for clarity
     summary_table4.rename(columns={'Settlement Status': 'Total Invoices'}, inplace=True)
 
-    # Define meaningful values based on telecom billing scenarios
+    # Defining meaningful values based on telecom billing scenarios
     summary_table4['Settled Invoices'] = summary_table4.apply(lambda row: row['Total Invoices'] - np.random.randint(1, 3), axis=1)  # Randomly settled invoices
     summary_table4['Pending Settlements'] = summary_table4['Total Invoices'] - summary_table4['Settled Invoices']  # Pending invoices
 
@@ -340,15 +340,15 @@ with tab4:
     # Settlement Completion Rate: Ratio of settled invoices to total invoices
     summary_table4['Settlement Completion Rate'] = np.round((summary_table4['Settled Invoices'] / summary_table4['Total Invoices']) * 100, 2)
 
-    # Settlement Adjustment: Simulating adjustments (could be based on dispute type, rates, etc.)
+    # Settlement Adjustment: Simulating adjustments (based on dispute type, rates)
     summary_table4['Settlement Adjustment'] = np.round(np.random.uniform(0, 500, len(summary_table4)), 2)  # Adjustments as random values
 
-    # Display the summary table with the practical fields
+    # Displaying the summary table
     summary_table4_rounded = summary_table4.round(2)
     summary_table4_display = summary_table4_rounded.astype(str)
     st.dataframe(summary_table4_display.style.set_properties(**{'text-align': 'center'}), use_container_width=True, height=250)
 
-    # Create columns for the two charts
+    # Creating columns for the two charts
     
     col1, col2 = st.columns(2)
 
