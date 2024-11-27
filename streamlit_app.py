@@ -99,11 +99,42 @@ def create_summary_table(data, columns):
 # Tabs
 tab1, tab2, tab3, tab4 = st.tabs(["Invoice Reconciliation", "Reconciliation Summary", "Dispute Summary", "Settlement Summary"])
 
-
-# Tab 1: Invoice Recon
+# Tab 1: Invoice Reconciliation
 with tab1:
     st.subheader("Invoice Reconciliation Overview")
-    
+
+    # Chart: Disputed vs Processed Amounts by Carrier
+    if not filtered_df.empty:
+        processed_vs_disputed = px.bar(filtered_df, x='Carrier Name', y=['Invoice Amount (USD)', 'Disputed Amount (USD)'],
+                                       title="Disputed vs Processed Amounts by Carrier", barmode="group", labels={
+                                           "Carrier Name": "Carrier", "value": "Amount (USD)"})
+
+    processed_vs_disputed.update_layout(
+        title={
+            'text': "Disputed vs Processed Amounts by Carrier",
+            'font': {'size': 24},
+            'x': 0.35
+        }
+    )
+    st.plotly_chart(processed_vs_disputed)
+
+    # Chart: Invoice Disputes by Month
+    monthly_disputes = filtered_df.round(2).groupby('Invoice Month').agg({
+        'Invoice Amount (USD)': 'sum', 'Disputed Amount (USD)': 'sum'}).reset_index()
+    monthly_disputes = np.round(monthly_disputes, 2)
+    monthly_disputes_fig = px.line(monthly_disputes.round(2), x='Invoice Month', y=['Invoice Amount (USD)', 'Disputed Amount (USD)'],
+                                   title="Invoice Disputes by Month", labels={"value": "Amount (USD)"})
+
+    monthly_disputes_fig.update_layout(
+        title={
+            'text': "Invoice Disputes by Month",
+            'font': {'size': 24},
+            'x': 0.35
+        }
+    )
+    st.plotly_chart(monthly_disputes_fig)
+
+    # Table: Summary Table
     table1_data = create_summary_table(filtered_df, [
         'Carrier Name', 'Reconciliation Status', 'Invoice Amount (USD)', 
         'Disputed Amount (USD)', 'Dispute Type', 'Settlement Status'
@@ -117,90 +148,14 @@ with tab1:
             return 'color: green; font-weight: bold;'
         return ''
 
-    # Styler for applying formatting
     styled_table = table1_data.style.applymap(highlight_settlement_status1, subset=['Settlement Status']).set_properties(**{'text-align': 'left'})
-  
     st.dataframe(styled_table, use_container_width=True, height=250)
-
-    # Chart: Disputed vs Processed Amounts by Carrier
-    
-    if not filtered_df.empty:
-        processed_vs_disputed = px.bar(filtered_df, x='Carrier Name', y=['Invoice Amount (USD)', 'Disputed Amount (USD)'],
-                                       title="Disputed vs Processed Amounts by Carrier", barmode="group",  labels={
-        "Carrier Name": "Carrier", "value": "Amount (USD)"})
-        
-    processed_vs_disputed.update_layout(
-        title={
-            'text': "Disputed vs Processed Amounts by Carrier",
-            'font': {'size': 24},  # Increase the font size
-            'x': 0.35  # Center the title
-            }
-    )
-    st.plotly_chart(processed_vs_disputed)
-
-    # Chart: Invoice Disputes by Month
-    
-    monthly_disputes = filtered_df.round(2).groupby('Invoice Month').agg({
-        'Invoice Amount (USD)': 'sum', 'Disputed Amount (USD)': 'sum'}).reset_index()
-    monthly_disputes = np.round(monthly_disputes, 2)
-    monthly_disputes_fig = px.line(monthly_disputes.round(2), x='Invoice Month', y=['Invoice Amount (USD)', 'Disputed Amount (USD)'],
-                                   title="Invoice Disputes by Month",  labels={"value": "Amount (USD)"} )
-
-    monthly_disputes_fig.update_layout(
-        title={
-            'text': "Invoice Disputes by Month",
-            'font': {'size': 24},  # Increase the font size
-            'x': 0.35  # Center the title
-            }
-    )
-    st.plotly_chart(monthly_disputes_fig)
 
 # Tab 2: Reconciliation Summary
 with tab2:
     st.subheader("Reconciliation Summary")
-    
-    # Calculate Receivables and Payables
-    filtered_df['Receivables'] = np.round(filtered_df['Invoice Amount (USD)'] - filtered_df['Disputed Amount (USD)'], 2)
-    filtered_df['Payables'] = np.round(filtered_df['Disputed Amount (USD)'], 2)
-
-    # Group by 'Carrier Name' and 'Billing Cycle'
-    summary_table2 = filtered_df.groupby(['Carrier Name', 'Billing Cycle']).agg({
-        'Invoice Amount (USD)': 'sum',
-        'Disputed Amount (USD)': 'sum',
-    }).reset_index()
-
-    # Adding additional columns like Receivables, Payables, Netted Amount, and Settlement Status
-    summary_table2['Receivables'] = np.round(np.random.uniform(1000, 3000, len(summary_table2)), 2)
-    summary_table2['Payables'] = np.round(np.random.uniform(500, 2500, len(summary_table2)), 2)
-    summary_table2['Netted Amount'] = np.round(summary_table2['Receivables'] - summary_table2['Payables'], 2)
-    summary_table2['Settlement Status'] = np.random.choice(['Settled', 'Pending'], len(summary_table2))
-
-    # Rounding numerical values for clarity
-    summary_table2_rounded = summary_table2.round(2)
-
-    summary_table2_display = summary_table2_rounded.astype(str)
-
-    # Applying conditional formatting for 'Settlement Status'
-    def highlight_settlement_status1(val):
-        """Highlight 'Pending' in red and 'Settled' in green."""
-        if val == 'Pending':
-            return 'color: red; font-weight: bold;'
-        elif val == 'Settled':
-            return 'color: green; font-weight: bold;'
-        return ''
-
-    # Styler for applying formatting
-    styled_table = summary_table2_display.style.applymap(highlight_settlement_status1, subset=['Settlement Status']).set_properties(**{'text-align': 'left'})
-  
-    # Displaying table using st.dataframe with scrollable height
-    st.dataframe(
-        styled_table,
-        use_container_width=True,
-        height=250  # Set fixed height for scrollable table
-    )
 
     # Chart: Pending Reconciliation by Carrier
-    
     pending_reconciliation = filtered_df[filtered_df['Reconciliation Status'] == 'Pending']
     pending_summary = pending_reconciliation.groupby('Carrier Name')['Invoice Amount (USD)'].sum().reset_index()
     pending_reconciliation_fig = px.bar(
@@ -213,69 +168,58 @@ with tab2:
     pending_reconciliation_fig.update_layout(
         title={
             'text': "Pending Reconciliation by Carrier",
-            'font': {'size': 24},  # Increase the font size
-            'x': 0.35  # Center the title
-            }
+            'font': {'size': 24},
+            'x': 0.35
+        }
     )
     st.plotly_chart(pending_reconciliation_fig)
 
+    # Table: Reconciliation Summary
+    filtered_df['Receivables'] = np.round(filtered_df['Invoice Amount (USD)'] - filtered_df['Disputed Amount (USD)'], 2)
+    filtered_df['Payables'] = np.round(filtered_df['Disputed Amount (USD)'], 2)
 
+    summary_table2 = filtered_df.groupby(['Carrier Name', 'Billing Cycle']).agg({
+        'Invoice Amount (USD)': 'sum',
+        'Disputed Amount (USD)': 'sum',
+    }).reset_index()
+
+    summary_table2['Receivables'] = np.round(np.random.uniform(1000, 3000, len(summary_table2)), 2)
+    summary_table2['Payables'] = np.round(np.random.uniform(500, 2500, len(summary_table2)), 2)
+    summary_table2['Netted Amount'] = np.round(summary_table2['Receivables'] - summary_table2['Payables'], 2)
+    summary_table2['Settlement Status'] = np.random.choice(['Settled', 'Pending'], len(summary_table2))
+
+    summary_table2_rounded = summary_table2.round(2)
+    summary_table2_display = summary_table2_rounded.astype(str)
+
+    def highlight_settlement_status1(val):
+        if val == 'Pending':
+            return 'color: red; font-weight: bold;'
+        elif val == 'Settled':
+            return 'color: green; font-weight: bold;'
+        return ''
+
+    styled_table = summary_table2_display.style.applymap(highlight_settlement_status1, subset=['Settlement Status']).set_properties(**{'text-align': 'left'})
+    st.dataframe(styled_table, use_container_width=True, height=250)
+
+# Similar changes are applied for Tab 3 and Tab 4. The charts are moved to the top, followed by their respective tables.
+
+# Tab 3: Dispute Summary
 # Tab 3: Dispute Summary
 with tab3:
     st.subheader("Dispute Summary")
-    
-    
-    # Simulating realistic values for 'Disputed Usage (Mins)'
-    # Disputed Usage is based on the type of dispute (Rate or Volume)
-    filtered_df['Disputed Usage (Mins)'] = np.random.uniform(0, 500, size=len(filtered_df)).round(2)
-    filtered_df.loc[filtered_df['Dispute Type'] == 'Rate Dispute', 'Disputed Usage (Mins)'] = np.random.uniform(0, 5000, size=len(filtered_df[filtered_df['Dispute Type'] == 'Rate Dispute'])).round(2)
-    filtered_df.loc[filtered_df['Dispute Type'] == 'Volume Dispute', 'Disputed Usage (Mins)'] = np.random.uniform(100, 2000, size=len(filtered_df[filtered_df['Dispute Type'] == 'Volume Dispute'])).round(2)
 
-    # Simulating realistic 'Disputed Amount' linked to usage
-    filtered_df['Disputed Amount (USD)'] = (filtered_df['Disputed Usage (Mins)'] * np.random.uniform(0.05, 0.2, size=len(filtered_df))).round(2)
+    # Ensure 'Disputed Usage (Mins)' is added to the filtered dataframe
+    if 'Disputed Usage (Mins)' not in filtered_df.columns:
+        # Simulate realistic values for 'Disputed Usage (Mins)'
+        filtered_df['Disputed Usage (Mins)'] = np.random.uniform(0, 500, size=len(filtered_df)).round(2)
+        filtered_df.loc[filtered_df['Dispute Type'] == 'Rate Dispute', 'Disputed Usage (Mins)'] = np.random.uniform(0, 5000, size=len(filtered_df[filtered_df['Dispute Type'] == 'Rate Dispute'])).round(2)
+        filtered_df.loc[filtered_df['Dispute Type'] == 'Volume Dispute', 'Disputed Usage (Mins)'] = np.random.uniform(100, 2000, size=len(filtered_df[filtered_df['Dispute Type'] == 'Volume Dispute'])).round(2)
 
-    # Grouping by 'Carrier Name' and calculating aggregated metrics
-    summary_table3 = filtered_df.groupby('Carrier Name').agg({
-        'Invoice Amount (USD)': 'sum',  # Sum of all invoices for each carrier
-        'Disputed Amount (USD)': 'sum',  # Sum of all disputed amounts
-        'Disputed Usage (Mins)': 'sum',  # Total disputed usage minutes
-        'Dispute Type': lambda x: np.random.choice(x.dropna().unique()) if not x.dropna().empty else None,  # Combine unique dispute types
-        'Settlement Status': lambda x: np.random.choice(x.dropna().unique()) if not x.dropna().empty else None  # Combine settlement statuses
-    }).reset_index()
+    # Simulate realistic 'Disputed Amount' linked to usage
+    if 'Disputed Amount (USD)' not in filtered_df.columns:
+        filtered_df['Disputed Amount (USD)'] = (filtered_df['Disputed Usage (Mins)'] * np.random.uniform(0.05, 0.2, size=len(filtered_df))).round(2)
 
-    # Rounding numerical values in the summary table
-    summary_table3[['Invoice Amount (USD)', 'Disputed Amount (USD)', 'Disputed Usage (Mins)']] = summary_table3[
-        ['Invoice Amount (USD)', 'Disputed Amount (USD)', 'Disputed Usage (Mins)']
-    ].round(2)
-
-    # Renaming columns for clarity
-    summary_table3.rename(columns={
-        'Invoice Amount (USD)': 'Total Invoice Amount (USD)',
-        'Disputed Amount (USD)': 'Total Disputed Amount (USD)',
-        'Disputed Usage (Mins)': 'Total Disputed Usage (Mins)'
-    }, inplace=True)
-
-    # Displaying the summary table
-    summary_table3_rounded = summary_table3.round(2)
-
-    # Converting the DataFrame to strings to ensure the display keeps formatting
-    summary_table3_display = summary_table3_rounded.astype(str)
-
-    # Applying conditional formatting for 'Settlement Status'
-    def highlight_settlement_status(val):
-        """Highlight 'Unsettled' in red."""
-        if val == 'Unsettled':
-            return 'color: red; font-weight: bold;'
-        else: return 'color: green; font-weight: bold;'
-        return ''
-
-    # Styler for applying formatting
-    styled_table = summary_table3_display.style.applymap(highlight_settlement_status, subset=['Settlement Status']).set_properties(**{'text-align': 'left'}, height=100)
-    
-    # Rendering the table as HTML and displaying using st.write
-    st.write(styled_table.to_html(), unsafe_allow_html=True)
-
-    # Creating two columns for side-by-side charts
+    # Create two columns for side-by-side charts
     col1, col2 = st.columns(2)
 
     # Chart 1: Disputed Amounts by Carrier
@@ -290,8 +234,8 @@ with tab3:
             title={
                 'text': "Disputed Amounts by Carrier",
                 'font': {'size': 24},
-                'x': 0.25
-                }
+                'x': 0.25  # Center the title
+            }
         )
         st.plotly_chart(disputed_amounts_fig, use_container_width=True)
 
@@ -306,28 +250,60 @@ with tab3:
         disputed_usage_fig.update_layout(
             title={
                 'text': "Disputed Usage by Carrier",
-                'font': {'size': 24},  # Increase the font size
+                'font': {'size': 24},
                 'x': 0.25  # Center the title
-                }
+            }
         )
         st.plotly_chart(disputed_usage_fig, use_container_width=True)
+
+    # Group by 'Carrier Name' and create the summary table
+    summary_table3 = filtered_df.groupby('Carrier Name').agg({
+        'Invoice Amount (USD)': 'sum',
+        'Disputed Amount (USD)': 'sum',
+        'Disputed Usage (Mins)': 'sum',
+        'Dispute Type': lambda x: np.random.choice(x.dropna().unique()) if not x.dropna().empty else None,
+        'Settlement Status': lambda x: np.random.choice(x.dropna().unique()) if not x.dropna().empty else None
+    }).reset_index()
+
+    # Round numerical values and convert to strings
+    summary_table3_rounded = summary_table3.round(2)
+    summary_table3_display = summary_table3_rounded.astype(str)
+
+    # Rename columns for clarity
+    summary_table3_display.rename(columns={
+        'Invoice Amount (USD)': 'Total Invoice Amount (USD)',
+        'Disputed Amount (USD)': 'Total Disputed Amount (USD)',
+        'Disputed Usage (Mins)': 'Total Disputed Usage (Mins)'
+    }, inplace=True)
+
+    # Apply conditional formatting for 'Settlement Status'
+    def highlight_settlement_status(val):
+        """Highlight 'Unsettled' in red."""
+        if val == 'Unsettled':
+            return 'color: red; font-weight: bold;'
+        else:
+            return 'color: green; font-weight: bold;'
+        return ''
+
+    # Style and display the summary table
+    styled_table = summary_table3_display.style.applymap(highlight_settlement_status, subset=['Settlement Status']).set_properties(**{'text-align': 'center'})
+    st.dataframe(styled_table, use_container_width=True, height=250)
 
 
 # Tab 4: Settlement Summary
 with tab4:
     st.subheader("Settlement Summary")
-    
 
-    # Grouping by 'Carrier Name' and aggregating the required fields
+    # Group by 'Carrier Name' and aggregate the required fields
     summary_table4 = filtered_df.groupby('Carrier Name').agg({
         'Disputed Amount (USD)': 'sum',  # Summing disputed amounts per carrier
         'Settlement Status': 'count',  # Counting the invoices (total invoices per carrier)
     }).reset_index()
 
-    # Renaming 'Settlement Status' to 'Total Invoices' for clarity
+    # Rename 'Settlement Status' to 'Total Invoices' for clarity
     summary_table4.rename(columns={'Settlement Status': 'Total Invoices'}, inplace=True)
 
-    # Defining meaningful values based on telecom billing scenarios
+    # Define meaningful values based on telecom billing scenarios
     summary_table4['Settled Invoices'] = summary_table4.apply(lambda row: row['Total Invoices'] - np.random.randint(1, 3), axis=1)  # Randomly settled invoices
     summary_table4['Pending Settlements'] = summary_table4['Total Invoices'] - summary_table4['Settled Invoices']  # Pending invoices
 
@@ -340,56 +316,55 @@ with tab4:
     # Settlement Completion Rate: Ratio of settled invoices to total invoices
     summary_table4['Settlement Completion Rate'] = np.round((summary_table4['Settled Invoices'] / summary_table4['Total Invoices']) * 100, 2)
 
-    # Settlement Adjustment: Simulating adjustments (based on dispute type, rates)
+    # Settlement Adjustment: Simulating adjustments (could be based on dispute type, rates, etc.)
     summary_table4['Settlement Adjustment'] = np.round(np.random.uniform(0, 500, len(summary_table4)), 2)  # Adjustments as random values
 
-    # Displaying the summary table
-    summary_table4_rounded = summary_table4.round(2)
-    summary_table4_display = summary_table4_rounded.astype(str)
-    st.dataframe(summary_table4_display.style.set_properties(**{'text-align': 'center'}), use_container_width=True, height=250)
-
-    # Creating columns for the two charts
-    
+    # Create columns for the two charts
     col1, col2 = st.columns(2)
 
     # Chart 1: Settlement Status by Carrier (Pie Chart)
-with col1:
-    settlement_status = filtered_df.groupby(['Carrier Name', 'Settlement Status']).size().reset_index(name='Count')
-    settlement_pie = px.pie(settlement_status, names='Settlement Status', values='Count', title="Overall Settlement Status")
-    settlement_pie.update_layout(
-        title={
-            'text': "Overall Settlement Status",
-            'font': {'size': 24},  # Increase the font size
-            'x': 0.25  # Center the title
-        }
-    )
-    st.plotly_chart(settlement_pie, use_container_width=True)
+    with col1:
+        settlement_status = filtered_df.groupby(['Carrier Name', 'Settlement Status']).size().reset_index(name='Count')
+        settlement_pie = px.pie(settlement_status, names='Settlement Status', values='Count', title="Overall Settlement Status")
+        settlement_pie.update_layout(
+            title={
+                'text': "Overall Settlement Status",
+                'font': {'size': 24},  # Increase the font size
+                'x': 0.25  # Center the title
+            }
+        )
+        st.plotly_chart(settlement_pie, use_container_width=True)
 
-# Chart 2: Outstanding Amount by Carrier (Bar Chart)
-with col2:
-    outstanding_bar = px.bar(
-        summary_table4,
-        x='Carrier Name',
-        y='Outstanding Amount',
-        title="Outstanding Amount by Carrier",
-        text='Outstanding Amount',
-        labels={'Outstanding Amount': 'Amount (USD)'},
-        color='Outstanding Amount',
-        color_continuous_scale='Reds'
-    )
-    outstanding_bar.update_traces(
-        texttemplate='%{text:.2f}',  # Format the text to 2 decimal places
-        textposition='outside',     # Position the text outside the bars
-        textangle=0                 # Make text horizontal
-    )
-    outstanding_bar.update_layout(
-        title={
-            'text': "Outstanding Amount by Carrier",
-            'font': {'size': 24},  # Increase the font size
-            'x': 0.25  # Center the title
-        },
-        xaxis_title="Carrier Name",
-        yaxis_title="Outstanding Amount (USD)",
-        template="plotly_white"
-    )
-    st.plotly_chart(outstanding_bar, use_container_width=True)
+    # Chart 2: Outstanding Amount by Carrier (Bar Chart)
+    with col2:
+        outstanding_bar = px.bar(
+            summary_table4,
+            x='Carrier Name',
+            y='Outstanding Amount',
+            title="Outstanding Amount by Carrier",
+            text='Outstanding Amount',
+            labels={'Outstanding Amount': 'Amount (USD)'},
+            color='Outstanding Amount',
+            color_continuous_scale='Reds'
+        )
+        outstanding_bar.update_traces(
+            texttemplate='%{text:.2f}',  # Format the text to 2 decimal places
+            textposition='outside',     # Position the text outside the bars
+            textangle=0                 # Make text horizontal
+        )
+        outstanding_bar.update_layout(
+            title={
+                'text': "Outstanding Amount by Carrier",
+                'font': {'size': 24},  # Increase the font size
+                'x': 0.25  # Center the title
+            },
+            xaxis_title="Carrier Name",
+            yaxis_title="Outstanding Amount (USD)",
+            template="plotly_white"
+        )
+        st.plotly_chart(outstanding_bar, use_container_width=True)
+
+    # Display the summary table below the charts
+    summary_table4_rounded = summary_table4.round(2)
+    summary_table4_display = summary_table4_rounded.astype(str)
+    st.dataframe(summary_table4_display.style.set_properties(**{'text-align': 'center'}), use_container_width=True, height=250)
