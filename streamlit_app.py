@@ -118,7 +118,7 @@ with tab1:
         unsettled_count = filtered_df[filtered_df['Settlement Status'] == 'Unsettled'].shape[0]
 
    # Display the counts with a consistent, centered design
-    st.markdown("### Settlement Summary")
+    
     st.markdown(
         f"""
         <div style="display: flex; justify-content: center; gap: 20px;">
@@ -158,7 +158,7 @@ with tab1:
             title={
                 'text': "Disputed vs Processed Amounts by Carrier",
                 'font': {'size': 24},
-                'x': 0.35
+                'x': 0.25
             }
         )
         st.plotly_chart(processed_vs_disputed)
