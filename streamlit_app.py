@@ -176,7 +176,7 @@ with tab1:
         title={ 
             'text': "Invoice Disputes by Month",
                 'font': {'size': 24},
-                'x': 0.35
+                'x': 0.25
             }
         )
     st.plotly_chart(monthly_disputes_fig)
