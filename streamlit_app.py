@@ -327,7 +327,7 @@ with tab3:
     volume_disputes = len(filtered_df[filtered_df['Dispute Type'] == 'Volume Dispute'])
 
    # Counters
-    st.markdown("### Ongoing Disputes")
+    
     st.markdown(
         """
         <div style="display: flex; justify-content: center; gap: 20px;">
